@@ -26,12 +26,12 @@ public class NettyServer {
                     }
                 });
 
-        bind(serverBootstrap, 1566);
+        bind(serverBootstrap, 80);
 
     }
 
     private static void bind(final ServerBootstrap serverBootstrap, final int port) {
-        serverBootstrap.bind("127.0.0.1", 80).addListener(future -> {
+        serverBootstrap.bind("127.0.0.1", port).addListener(future -> {
             if (future.isSuccess()) {
                 log.info("端口[" + port + "]绑定成功!");
             } else {
