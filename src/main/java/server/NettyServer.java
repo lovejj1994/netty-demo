@@ -26,17 +26,17 @@ public class NettyServer {
                     }
                 });
 
-        bind(serverBootstrap, 80);
+        bind(serverBootstrap, args[0], args[1]);
 
     }
 
-    private static void bind(final ServerBootstrap serverBootstrap, final int port) {
-        serverBootstrap.bind("127.0.0.1", port).addListener(future -> {
+    private static void bind(final ServerBootstrap serverBootstrap, String ip, String port) {
+        serverBootstrap.bind(ip, Integer.valueOf(port)).addListener(future -> {
             if (future.isSuccess()) {
                 log.info("端口[" + port + "]绑定成功!");
             } else {
                 log.info("端口[" + port + "]绑定失败!");
-                bind(serverBootstrap, port + 1);
+                bind(serverBootstrap, ip, port + 1);
             }
         });
     }
