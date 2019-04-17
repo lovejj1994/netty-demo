@@ -1,18 +1,17 @@
 package json.codec;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import json.JSONSerializer;
 import json.Serializer;
-import protocol.LoginRequestPacket;
-import protocol.LoginResponsePacket;
-import protocol.Packet;
+import protocol.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static protocol.LoginRequestPacket.LOGIN_REQUEST;
 import static protocol.LoginResponsePacket.LOGIN_RESPONSE_REQUEST;
+import static protocol.MessageRequestPacket.MESSAGE_REQUEST;
+import static protocol.MessageResponsePacket.MESSAGE_RESPONSE;
 
 
 /**
@@ -25,7 +24,7 @@ public class PacketCodeC {
 
     public static final PacketCodeC INSTANCE = new PacketCodeC();
 
-    private static final int MAGIC_NUMBER = 0x12345678;
+    public static final int MAGIC_NUMBER = 0x12345678;
     private static final Map<Byte, Class<? extends Packet>> packetTypeMap;
     private static final Map<Byte, Serializer> serializerMap;
 
@@ -33,6 +32,8 @@ public class PacketCodeC {
         packetTypeMap = new HashMap<>();
         packetTypeMap.put(LOGIN_REQUEST, LoginRequestPacket.class);
         packetTypeMap.put(LOGIN_RESPONSE_REQUEST, LoginResponsePacket.class);
+        packetTypeMap.put(MESSAGE_REQUEST, MessageRequestPacket.class);
+        packetTypeMap.put(MESSAGE_RESPONSE, MessageResponsePacket.class);
 
         serializerMap = new HashMap<>();
         Serializer serializer = new JSONSerializer();
@@ -40,16 +41,20 @@ public class PacketCodeC {
     }
 
 
-    public ByteBuf encode(Packet packet) {
-        // 1. 创建 ByteBuf 对象
-        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.ioBuffer();
+    public ByteBuf encode(ByteBuf byteBuf, Packet packet) {
         // 2. 序列化 Java 对象
         byte[] bytes = Serializer.DEFAULT.serialize(packet);
         // 3. 实际编码过程
+
+//        魔数
         byteBuf.writeInt(MAGIC_NUMBER);
+//        版本号
         byteBuf.writeByte(packet.getVersion());
+//        序列号算法
         byteBuf.writeByte(Serializer.DEFAULT.getSerializerAlgorithm());
+//        指令
         byteBuf.writeByte(packet.getCommand());
+//        数据长度
         byteBuf.writeInt(bytes.length);
         byteBuf.writeBytes(bytes);
 

@@ -1,14 +1,24 @@
 package client;
 
-import handle.client.ClientHandler;
+import handle.client.LoginResponseHandler;
+import handle.client.MessageResponseHandler;
+import handle.encoder.PacketDecoder;
+import handle.encoder.PacketEncoder;
+import handle.encoder.Spliter;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+import protocol.LoginRequestPacket;
+import protocol.MessageRequestPacket;
+import util.SessionUtil;
 
 import java.util.Date;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -30,24 +40,26 @@ public class NettyClient {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) {
-                        ch.pipeline().addLast(new ClientHandler());
+                        ch.pipeline().addLast(new Spliter());
+                        ch.pipeline().addLast(new PacketDecoder());
+                        ch.pipeline().addLast(new LoginResponseHandler());
+                        ch.pipeline().addLast(new MessageResponseHandler());
+                        ch.pipeline().addLast(new PacketEncoder());
                     }
                 });
         // 4.建立连接
-        connect(bootstrap, "xxywithpq.ngrok.xiaomiqiu.cn", 80, 4);
-//        bootstrap.connect("127.0.0.1", 8088).addListener(future -> {
-//            if (future.isSuccess()) {
-//                log.info("连接成功!");
-//            } else {
-//                log.error("连接失败!");
-//            }
-//        });
+
     }
 
     private static void connect(Bootstrap bootstrap, String host, int port, int retry) {
-        bootstrap.connect(host, port).addListener(future -> {
+        bootstrap.connect(host, port).addListener(future -> {connect(bootstrap, "localhost", 7788, 4);
             if (future.isSuccess()) {
                 log.info("连接成功!");
+
+                Channel channel = ((ChannelFuture) future).channel();
+                // 连接成功之后，启动控制台线程
+                startConsoleThread(channel);
+
             } else if (retry == 0) {
                 log.error("重试次数已用完，放弃连接！");
             } else {
@@ -59,5 +71,37 @@ public class NettyClient {
                 bootstrap.config().group().schedule(() -> connect(bootstrap, host, port, retry - 1), delay, TimeUnit.SECONDS);
             }
         });
+    }
+
+
+    private static void startConsoleThread(Channel channel) {
+        Scanner sc = new Scanner(System.in);
+        LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
+
+        new Thread(() -> {
+            while (!Thread.interrupted()) {
+                if (!SessionUtil.hasLogin(channel)) {
+                    log.info("输入用户名登录: ");
+                    String username = sc.nextLine();
+                    loginRequestPacket.setUserName(username);
+
+                    // 密码使用默认的
+                    loginRequestPacket.setPassword("pwd");
+
+                    // 发送登录数据包
+                    channel.writeAndFlush(loginRequestPacket);
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                    }
+                } else {
+                    log.info("请输入message信息: ");
+                    String toUserId = sc.next();
+                    String message = sc.next();
+                    channel.writeAndFlush(new MessageRequestPacket(toUserId, message));
+                }
+            }
+        }).start();
     }
 }

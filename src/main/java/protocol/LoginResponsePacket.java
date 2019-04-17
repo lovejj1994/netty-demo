@@ -1,6 +1,7 @@
 package protocol;
 
 import lombok.Data;
+import session.Session;
 
 @Data
 public class LoginResponsePacket extends Packet {
@@ -10,6 +11,8 @@ public class LoginResponsePacket extends Packet {
     private String reason;
 
     private boolean success;
+
+    Session session;
 
     @Override
     public Byte getCommand() {
