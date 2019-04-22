@@ -1,5 +1,6 @@
 package handle.client;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -9,20 +10,10 @@ import util.SessionUtil;
 import java.util.Date;
 
 @Slf4j
+@ChannelHandler.Sharable
 public class LoginResponseHandler extends SimpleChannelInboundHandler<LoginResponsePacket> {
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-//        log.info(new Date() + ": 客户端开始登录");
-
-        // 创建登录对象
-//        LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
-//        loginRequestPacket.setUserName("flash");
-//        loginRequestPacket.setPassword("pwd");
-//
-//        // 写数据
-//        ctx.channel().writeAndFlush(loginRequestPacket);
-    }
+    public static final LoginResponseHandler INSTANCE = new LoginResponseHandler();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, LoginResponsePacket loginResponsePacket) {

@@ -35,13 +35,5 @@ public class MessageRequestHandler extends SimpleChannelInboundHandler<MessageRe
         } else {
             log.error("[{}] 不在线，发送失败!", messageRequestPacket.getToUserId());
         }
-
-
-        // 处理消息
-//        log.info(new Date() + ": 收到客户端消息: " + messageRequestPacket.getMessage());
-//
-//        MessageResponsePacket messageResponsePacket = new MessageResponsePacket();
-//        messageResponsePacket.setMessage("服务端回复【" + messageRequestPacket.getMessage() + "】");
-//        ctx.channel().writeAndFlush(messageResponsePacket);
     }
 }

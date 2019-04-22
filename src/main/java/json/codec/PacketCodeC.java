@@ -8,10 +8,22 @@ import protocol.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static protocol.CreateGroupRequestPacket.CREATE_GROUP_REQUEST;
+import static protocol.CreateGroupResponsePacket.CREATE_GROUP_RESPONSE;
+import static protocol.GroupMessageRequestPacket.GROUP_MESSAGE_REQUEST;
+import static protocol.GroupMessageResponsePacket.GROUP_MESSAGE_RESPONSE;
+import static protocol.HeartBeatRequestPacket.HEARTBEAT_REQUEST;
+import static protocol.HeartBeatResponsePacket.HEARTBEAT_RESPONSE;
+import static protocol.JoinGroupRequestPacket.JOIN_GROUP_REQUEST;
+import static protocol.JoinGroupResponsePacket.JOIN_GROUP_RESPONSE;
+import static protocol.ListGroupMembersRequestPacket.LIST_GROUP_MEMBERS_REQUEST;
+import static protocol.ListGroupMembersResponsePacket.LIST_GROUP_MEMBERS_RESPONSE;
 import static protocol.LoginRequestPacket.LOGIN_REQUEST;
 import static protocol.LoginResponsePacket.LOGIN_RESPONSE_REQUEST;
 import static protocol.MessageRequestPacket.MESSAGE_REQUEST;
 import static protocol.MessageResponsePacket.MESSAGE_RESPONSE;
+import static protocol.QuitGroupRequestPacket.QUIT_GROUP_REQUEST;
+import static protocol.QuitGroupResponsePacket.QUIT_GROUP_RESPONSE;
 
 
 /**
@@ -29,11 +41,23 @@ public class PacketCodeC {
     private static final Map<Byte, Serializer> serializerMap;
 
     static {
-        packetTypeMap = new HashMap<>();
+        packetTypeMap = new HashMap<>(17);
         packetTypeMap.put(LOGIN_REQUEST, LoginRequestPacket.class);
         packetTypeMap.put(LOGIN_RESPONSE_REQUEST, LoginResponsePacket.class);
         packetTypeMap.put(MESSAGE_REQUEST, MessageRequestPacket.class);
         packetTypeMap.put(MESSAGE_RESPONSE, MessageResponsePacket.class);
+        packetTypeMap.put(CREATE_GROUP_REQUEST, CreateGroupRequestPacket.class);
+        packetTypeMap.put(CREATE_GROUP_RESPONSE, CreateGroupResponsePacket.class);
+        packetTypeMap.put(JOIN_GROUP_REQUEST, JoinGroupRequestPacket.class);
+        packetTypeMap.put(JOIN_GROUP_RESPONSE, JoinGroupResponsePacket.class);
+        packetTypeMap.put(QUIT_GROUP_REQUEST, QuitGroupRequestPacket.class);
+        packetTypeMap.put(QUIT_GROUP_RESPONSE, QuitGroupResponsePacket.class);
+        packetTypeMap.put(LIST_GROUP_MEMBERS_REQUEST, ListGroupMembersRequestPacket.class);
+        packetTypeMap.put(LIST_GROUP_MEMBERS_RESPONSE, ListGroupMembersResponsePacket.class);
+        packetTypeMap.put(GROUP_MESSAGE_REQUEST, GroupMessageRequestPacket.class);
+        packetTypeMap.put(GROUP_MESSAGE_RESPONSE, GroupMessageResponsePacket.class);
+        packetTypeMap.put(HEARTBEAT_REQUEST, HeartBeatRequestPacket.class);
+        packetTypeMap.put(HEARTBEAT_RESPONSE, HeartBeatResponsePacket.class);
 
         serializerMap = new HashMap<>();
         Serializer serializer = new JSONSerializer();

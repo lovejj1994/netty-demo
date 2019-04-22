@@ -1,10 +1,10 @@
 package client;
 
-import handle.client.LoginResponseHandler;
-import handle.client.MessageResponseHandler;
-import handle.encoder.PacketDecoder;
-import handle.encoder.PacketEncoder;
+import command.ConsoleCommandManager;
+import handle.client.*;
+import handle.encoder.PacketCodecHandler;
 import handle.encoder.Spliter;
+import handle.server.IMIdleStateHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -14,7 +14,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import protocol.LoginRequestPacket;
-import protocol.MessageRequestPacket;
 import util.SessionUtil;
 
 import java.util.Date;
@@ -40,19 +39,26 @@ public class NettyClient {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) {
+                        ch.pipeline().addLast(new IMIdleStateHandler());
                         ch.pipeline().addLast(new Spliter());
-                        ch.pipeline().addLast(new PacketDecoder());
-                        ch.pipeline().addLast(new LoginResponseHandler());
+                        ch.pipeline().addLast(PacketCodecHandler.INSTANCE);
+                        ch.pipeline().addLast(new HeartBeatTimerHandler());
+                        ch.pipeline().addLast(new HeatBeatsResponseHandler());
+                        ch.pipeline().addLast(LoginResponseHandler.INSTANCE);
                         ch.pipeline().addLast(new MessageResponseHandler());
-                        ch.pipeline().addLast(new PacketEncoder());
+                        ch.pipeline().addLast(new CreateGroupResponseHandler());
+                        ch.pipeline().addLast(new JoinGroupResponseHandler());
+                        ch.pipeline().addLast(new QuitGroupResponseHandler());
+                        ch.pipeline().addLast(new ListGroupMembersResponseHandler());
+                        ch.pipeline().addLast(new GroupMessageResponseHandler());
                     }
                 });
         // 4.建立连接
-
+        connect(bootstrap, "localhost", 7788, 4);
     }
 
     private static void connect(Bootstrap bootstrap, String host, int port, int retry) {
-        bootstrap.connect(host, port).addListener(future -> {connect(bootstrap, "localhost", 7788, 4);
+        bootstrap.connect(host, port).addListener(future -> {
             if (future.isSuccess()) {
                 log.info("连接成功!");
 
@@ -77,6 +83,7 @@ public class NettyClient {
     private static void startConsoleThread(Channel channel) {
         Scanner sc = new Scanner(System.in);
         LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
+        ConsoleCommandManager consoleCommandManager = new ConsoleCommandManager();
 
         new Thread(() -> {
             while (!Thread.interrupted()) {
@@ -96,10 +103,7 @@ public class NettyClient {
                     } catch (InterruptedException ignored) {
                     }
                 } else {
-                    log.info("请输入message信息: ");
-                    String toUserId = sc.next();
-                    String message = sc.next();
-                    channel.writeAndFlush(new MessageRequestPacket(toUserId, message));
+                    consoleCommandManager.exec(sc, channel);
                 }
             }
         }).start();

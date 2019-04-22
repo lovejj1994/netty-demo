@@ -1,5 +1,6 @@
 package handle.server;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +12,10 @@ import util.SessionUtil;
 import java.util.UUID;
 
 @Slf4j
+@ChannelHandler.Sharable
 public class LoginRequestHandler extends SimpleChannelInboundHandler<LoginRequestPacket> {
+
+    public static final LoginRequestHandler INSTANCE = new LoginRequestHandler();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, LoginRequestPacket loginRequestPacket) {
@@ -29,7 +33,7 @@ public class LoginRequestHandler extends SimpleChannelInboundHandler<LoginReques
             loginResponsePacket.setSuccess(false);
         }
         // 编码
-        ctx.channel().writeAndFlush(loginResponsePacket);
+        ctx.writeAndFlush(loginResponsePacket);
     }
 
     private boolean valid(LoginRequestPacket loginRequestPacket) {
